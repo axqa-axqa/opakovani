@@ -1,0 +1,1381 @@
+<!doctype html><html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#C42032"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Opakování"><meta name="apple-mobile-web-app-status-bar-style" content="default"><style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style></head><body><title>Opakování</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Source+Sans+3:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: phone-first single column; sticky tab bar; one big flashcard as the hero of "Hoy"; tram-red accent, ink-blue neutrals */
+:root{
+  --bg:#EEF1F6; --surface:#FFFFFF; --sunk:#E3E8F0; --ink:#141B33; --muted:#5A6482; --line:#D3DAE6;
+  --accent:#C42032; --accent-ink:#FFFFFF; --accent-soft:#FBE3E5;
+  --blue:#2A4C9E; --blue-soft:#E2E9F8;
+  --ok:#1C7A4A; --ok-soft:#DFF2E7; --warn:#A8620F; --warn-soft:#FBEED8; --bad:#B23440; --bad-soft:#FBE4E6;
+  --display:"Familjen Grotesk",ui-sans-serif,system-ui,sans-serif;
+  --body:"Source Sans 3",ui-sans-serif,system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0F1426; --surface:#171E36; --sunk:#111830; --ink:#E8ECF7; --muted:#9AA3C0; --line:#2A3354;
+  --accent:#FF5A68; --accent-ink:#1A0508; --accent-soft:#3D1A22;
+  --blue:#8EAAF5; --blue-soft:#1F2C55;
+  --ok:#6BD49B; --ok-soft:#16362A; --warn:#F2B35C; --warn-soft:#3A2B15; --bad:#F38A93; --bad-soft:#3E1C24; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1426; --surface:#171E36; --sunk:#111830; --ink:#E8ECF7; --muted:#9AA3C0; --line:#2A3354;
+  --accent:#FF5A68; --accent-ink:#1A0508; --accent-soft:#3D1A22;
+  --blue:#8EAAF5; --blue-soft:#1F2C55;
+  --ok:#6BD49B; --ok-soft:#16362A; --warn:#F2B35C; --warn-soft:#3A2B15; --bad:#F38A93; --bad-soft:#3E1C24; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 56px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:1.7rem;line-height:1.1}
+h2{font-size:1.2rem}
+h3{font-size:1rem}
+p{margin:0}
+.muted{color:var(--muted)}
+.small{font-size:.88rem}
+.label{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+header.top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.date{font-family:var(--display);color:var(--accent);font-weight:600}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;padding:3px 10px;border-radius:999px;background:var(--sunk);color:var(--muted)}
+.chip i{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.chip.ok i{background:var(--ok)} .chip.warn i{background:var(--warn)}
+
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;padding-block:6px;border-bottom:1px solid var(--line)}
+nav button{font:600 clamp(.78rem,3.3vw,.92rem) var(--body);color:var(--muted);background:none;border:0;border-radius:8px;padding:9px 2px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+textarea{width:100%;min-height:90px;font:.8rem var(--mono);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;resize:vertical}
+.ref{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:4px 16px;font-size:.92rem}
+.ref span{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dotted var(--line);padding-block:2px}
+.ref b{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:600}
+details.sheet{border-top:1px solid var(--line);padding-top:10px}
+details.sheet summary{cursor:pointer;font-family:var(--display);font-weight:600}
+details.sheet>div{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+nav button[aria-selected="true"]{color:var(--accent);background:var(--accent-soft)}
+section{display:flex;flex-direction:column;gap:14px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.spread{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+button{font-family:var(--body)}
+.btn{font:600 .95rem var(--body);border-radius:10px;padding:10px 16px;cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.quiet{background:var(--sunk);border-color:var(--line);color:var(--ink)}
+.btn:disabled{opacity:.45;cursor:default}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+input[type=text],select{font:1rem var(--body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+.row input[type=text]{flex:1 1 200px}
+[hidden]{display:none!important}
+.tag{font:600 .72rem var(--body);letter-spacing:.04em;padding:2px 8px;border-radius:999px;background:var(--blue-soft);color:var(--blue);white-space:nowrap}
+.tag.f{background:var(--accent-soft);color:var(--accent)}
+.tag.n{background:var(--ok-soft);color:var(--ok)}
+.tag.x,.tag.v,.tag.adj,.tag.pl{background:var(--sunk);color:var(--muted)}
+
+/* Today */
+.counts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.count{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.count b{display:block;font-family:var(--display);font-size:1.5rem;font-variant-numeric:tabular-nums;line-height:1.1}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px 18px;display:flex;flex-direction:column;gap:14px;min-height:300px}
+.card .dir{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.word{font-family:var(--display);font-size:clamp(1.8rem,7vw,2.6rem);line-height:1.12;font-weight:600;text-wrap:balance;overflow-wrap:anywhere}
+.answer{border-top:1px dashed var(--line);padding-top:14px;display:flex;flex-direction:column;gap:6px}
+.answer .word{font-size:clamp(1.4rem,5.5vw,2rem);color:var(--blue)}
+.note{color:var(--muted);font-size:.95rem}
+.speak{border:1px solid var(--line);background:var(--sunk);color:var(--ink);border-radius:999px;padding:6px 12px;font:600 .85rem var(--body);cursor:pointer}
+.grades{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:auto}
+.grades button{border-radius:10px;padding:10px 4px;cursor:pointer;font:600 .92rem var(--body);border:1px solid var(--line);background:var(--sunk);color:var(--ink);display:flex;flex-direction:column;align-items:center;gap:1px}
+.grades button small{font-weight:400;color:var(--muted);font-size:.75rem}
+.grades .g0{border-color:var(--bad);color:var(--bad);background:var(--bad-soft)}
+.grades .g2{border-color:var(--ok);color:var(--ok);background:var(--ok-soft)}
+.fb{font-size:.95rem;padding:8px 12px;border-radius:10px}
+.fb.ok{background:var(--ok-soft);color:var(--ok)} .fb.near{background:var(--warn-soft);color:var(--warn)} .fb.bad{background:var(--bad-soft);color:var(--bad)}
+.progressbar{height:6px;background:var(--sunk);border-radius:99px;overflow:hidden}
+.progressbar span{display:block;height:100%;background:var(--accent);transition:width .25s}
+.kbd{font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+
+/* Words */
+.theme{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:8px}
+.theme:first-of-type{border-top:0;padding-top:0}
+.theme summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.theme summary::-webkit-details-marker{display:none}
+.mini{height:5px;width:80px;background:var(--sunk);border-radius:9px;overflow:hidden;flex:0 0 auto}
+.mini span{display:block;height:100%;background:var(--ok)}
+.wl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.wl li{display:grid;grid-template-columns:12px minmax(0,1fr) minmax(0,1fr) auto;gap:10px;align-items:baseline;padding-block:6px;border-bottom:1px solid var(--line);font-size:.95rem}
+.wl li:last-child{border-bottom:0}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--line);align-self:center}
+.dot.l{background:var(--warn)} .dot.m{background:var(--ok)}
+.cz{font-weight:600}
+.switch{display:inline-flex;align-items:center;gap:8px;font-size:.88rem;color:var(--muted);cursor:pointer}
+.switch input{width:18px;height:18px;accent-color:var(--accent)}
+.x{border:0;background:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:0 4px}
+
+/* Grammar */
+.seg{display:flex;gap:4px;background:var(--sunk);border-radius:10px;padding:4px;flex-wrap:wrap}
+.seg button{flex:1 1 auto;border:0;background:none;border-radius:8px;padding:8px 10px;font:600 .9rem var(--body);color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.prompt{font-family:var(--display);font-size:1.5rem;line-height:1.25;text-wrap:balance}
+.prompt em{font-style:normal;color:var(--accent)}
+.blank{display:inline-block;min-width:3.5em;border-bottom:2px solid var(--accent)}
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.legend div{border-left:3px solid var(--blue);padding:2px 10px;font-size:.88rem}
+.legend strong{display:block;font-family:var(--display);font-size:.95rem}
+
+/* Progress */
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+@media (min-width:520px){.stats{grid-template-columns:repeat(4,1fr)}}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px}
+.stat b{display:block;font-family:var(--display);font-size:1.6rem;font-variant-numeric:tabular-nums;line-height:1.1}
+.chart{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font:11px var(--body)}
+.bars{display:flex;flex-direction:column;gap:8px}
+.bar{display:grid;grid-template-columns:96px minmax(0,1fr) 64px;gap:10px;align-items:center;font-size:.9rem}
+.bar .track{height:10px;background:var(--sunk);border-radius:9px;overflow:hidden}
+.bar .track span{display:block;height:100%;border-radius:9px}
+.bar .v{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.settings{display:grid;grid-template-columns:1fr;gap:10px}
+.settings label{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+@media (prefers-reduced-motion:reduce){.progressbar span{transition:none}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div style="display:flex;flex-direction:column;gap:2px">
+      <span class="date" id="czDate">neděle 8. listopadu</span>
+      <h1>Opakování</h1>
+    </div>
+    <span class="chip" id="saveChip"><i></i><span>Cargando…</span></span>
+  </header>
+
+  <nav role="tablist" aria-label="Secciones">
+    <button role="tab" data-tab="dnes" aria-selected="true">Hoy</button>
+    <button role="tab" data-tab="slova" aria-selected="false">Palabras</button>
+    <button role="tab" data-tab="cisla" aria-selected="false">Números</button>
+    <button role="tab" data-tab="gramatika" aria-selected="false">Gramática</button>
+    <button role="tab" data-tab="pokrok" aria-selected="false">Progreso</button>
+  </nav>
+
+  <!-- HOY -->
+  <section id="dnes" data-panel>
+    <div class="counts">
+      <div class="count"><span class="label">Nuevas</span><b id="cNew">0</b></div>
+      <div class="count"><span class="label">Repasos</span><b id="cDue">0</b></div>
+      <div class="count"><span class="label">Hechas hoy</span><b id="cDone">0</b></div>
+    </div>
+    <div class="progressbar" aria-hidden="true"><span id="sessBar" style="width:0%"></span></div>
+    <div class="card" id="card"></div>
+    <p class="kbd" id="kbdHint">Teclado: espacio = mostrar · 1 2 3 4 = calificar</p>
+  </section>
+
+  <!-- PALABRAS -->
+  <section id="slova" data-panel hidden>
+    <div class="panel">
+      <h2>Añade tus propias palabras</h2>
+      <p class="muted small">Lo que oigas en el trabajo, en el súper o en el tranvía. Tus palabras entran primero en las nuevas del día.</p>
+      <form id="addForm" class="row" autocomplete="off">
+        <input type="text" id="addCz" placeholder="Checo: např. vzorek" aria-label="Palabra en checo" spellcheck="false">
+        <input type="text" id="addEs" placeholder="Español: muestra" aria-label="Traducción">
+        <input type="text" id="addNote" placeholder="Nota (opcional): m., gen. vzorku" aria-label="Nota" style="flex-basis:100%">
+        <button class="btn" type="submit">Añadir</button>
+      </form>
+      <p id="addFb" class="small muted" hidden></p>
+    </div>
+    <div class="panel">
+      <div class="spread">
+        <h2>Temas</h2>
+        <span class="small muted">Desactiva un tema para que no entren palabras nuevas de él.</span>
+      </div>
+      <input type="text" id="search" placeholder="Buscar en checo o español" aria-label="Buscar palabra">
+      <div id="themes"></div>
+    </div>
+  </section>
+
+  <!-- GRAMÁTICA -->
+  <section id="gramatika" data-panel hidden>
+    <div class="seg" role="group" aria-label="Ejercicio">
+      <button type="button" data-g="pady" aria-pressed="true">Casos</button>
+      <button type="button" data-g="slovesa" aria-pressed="false">Verbos</button>
+    </div>
+
+    <div class="panel" data-gpanel="pady">
+      <div class="spread">
+        <h2>Preposición + caso</h2>
+        <select id="padyMode" aria-label="Tipo de frase">
+          <option value="all">Todo mezclado</option>
+          <option value="place">Kde · Kam · Odkud</option>
+          <option value="person">Personas (s, k, u, pro, o, bez)</option>
+          <option value="food">Comida (s, bez)</option>
+        </select>
+      </div>
+      <p class="muted small">Escribe la preposición y el sustantivo declinado, por ejemplo <span class="cz">do kina</span>. Ojo con <span class="cz">ve, ze, ke, se</span>.</p>
+      <p class="prompt" id="padyPrompt"></p>
+      <form id="padyForm" class="row" autocomplete="off">
+        <input type="text" id="padyIn" aria-label="Tu respuesta" spellcheck="false">
+        <button class="btn" type="submit">Revisar</button>
+        <button class="btn ghost" type="button" id="padyNext">Otra</button>
+      </form>
+      <div id="padyFb"></div>
+      <details>
+        <summary class="small" style="cursor:pointer;color:var(--blue);font-weight:600">Chuleta de casos</summary>
+        <div class="legend" style="margin-top:10px">
+          <div><strong>Genitiv</strong>do, z, u, bez, od, vedle</div>
+          <div><strong>Dativ</strong>k, proti, díky</div>
+          <div><strong>Akuzativ</strong>na (kam?), pro, za, v + día</div>
+          <div><strong>Lokál</strong>v, na (kde?), o, po</div>
+          <div><strong>Instrumentál</strong>s, před, pod, nad, mezi</div>
+        </div>
+      </details>
+    </div>
+
+    <div class="panel" data-gpanel="slovesa" hidden>
+      <div class="spread">
+        <h2>Conjugación</h2>
+        <select id="verbMode" aria-label="Tiempo verbal">
+          <option value="mix">Presente y pasado</option>
+          <option value="pres">Solo presente</option>
+          <option value="past">Solo pasado</option>
+        </select>
+      </div>
+      <p class="prompt" id="verbPrompt"></p>
+      <form id="verbForm" class="row" autocomplete="off">
+        <input type="text" id="verbIn" aria-label="Forma del verbo" spellcheck="false">
+        <button class="btn" type="submit">Revisar</button>
+        <button class="btn ghost" type="button" id="verbNext">Otro</button>
+      </form>
+      <div id="verbFb"></div>
+      <p class="muted small">En pasado escribe también el auxiliar: <span class="cz">byla jsem</span>, <span class="cz">šel jsi</span>, <span class="cz">byli jsme</span>.</p>
+    </div>
+
+  </section>
+
+  <!-- NÚMEROS -->
+  <section id="cisla" data-panel hidden>
+    <div class="panel">
+      <div class="spread">
+        <h2>Práctica de números</h2>
+        <select id="numMode" aria-label="Tipo de ejercicio">
+          <option value="mix">Todo mezclado</option>
+          <option value="basic">0–99</option>
+          <option value="h">100–999</option>
+          <option value="t">1 000–9 999</option>
+          <option value="y">Años</option>
+          <option value="p">Precios (Kč)</option>
+          <option value="hora">Kolik je hodin?</option>
+          <option value="vkolik">V kolik? (a qué hora)</option>
+          <option value="fecha">Fechas</option>
+          <option value="d">Dictado: escuchar números</option>
+          <option value="tel">Dictado: teléfonos</option>
+        </select>
+      </div>
+      <p class="muted small" id="numHint"></p>
+      <p class="prompt" id="numPrompt"></p>
+      <div class="row" id="numListen" hidden><button class="speak" type="button" id="numPlay">▶ Escuchar otra vez</button></div>
+      <form id="numForm" class="row" autocomplete="off">
+        <input type="text" id="numIn" aria-label="Tu respuesta" spellcheck="false">
+        <button class="btn" type="submit">Revisar</button>
+        <button class="btn ghost" type="button" id="numNext">Otro</button>
+      </form>
+      <div id="numFb"></div>
+      <p class="small muted">Seguidas sin error: <strong id="numRun">0</strong></p>
+    </div>
+
+    <div class="panel">
+      <h2>Chuleta</h2>
+      <details class="sheet" open><summary>0–20 y decenas</summary><div>
+        <div class="ref" id="refBasic"></div>
+        <p class="small muted">De 21 a 99 se pegan las piezas: 45 = <span class="cz">čtyřicet pět</span>. 1 cambia según el género: <span class="cz">jeden</span> (m), <span class="cz">jedna</span> (f), <span class="cz">jedno</span> (n). 2: <span class="cz">dva</span> (m), <span class="cz">dvě</span> (f, n).</p>
+      </div></details>
+      <details class="sheet"><summary>Cientos y miles</summary><div>
+        <div class="ref">
+          <span>sto<b>100</b></span><span>dvě stě<b>200</b></span><span>tři sta<b>300</b></span><span>čtyři sta<b>400</b></span><span>pět set<b>500</b></span><span>devět set<b>900</b></span>
+          <span>tisíc<b>1 000</b></span><span>dva tisíce<b>2 000</b></span><span>pět tisíc<b>5 000</b></span><span>milion<b>1 000 000</b></span>
+        </div>
+        <p class="small muted">Regla: con 2 se usa <span class="cz">stě</span>; con 3–4, <span class="cz">sta / tisíce</span>; con 5 o más, <span class="cz">set / tisíc</span>. Años: <span class="cz">dva tisíce dvacet šest</span>; antes de 2000 también se dice <span class="cz">devatenáct set devadesát</span>.</p>
+      </div></details>
+      <details class="sheet"><summary>Coronas</summary><div>
+        <p class="small">1 <span class="cz">koruna</span> · 2 <span class="cz">dvě koruny</span> · 3–4 <span class="cz">koruny</span> · 5 o más <span class="cz">korun</span> · 11–19 <span class="cz">korun</span>. Cuenta el último número: 22 <span class="cz">dvacet dvě koruny</span>, 25 <span class="cz">dvacet pět korun</span>.</p>
+      </div></details>
+      <details class="sheet"><summary>La hora</summary><div>
+        <p class="small"><strong>Kolik je hodin?</strong> <span class="cz">Je jedna hodina</span> · <span class="cz">Jsou dvě / tři / čtyři hodiny</span> · <span class="cz">Je pět hodin</span> (y de ahí en adelante).</p>
+        <p class="small"><strong>V kolik?</strong> <span class="cz">v jednu</span> · <span class="cz">ve dvě</span> · <span class="cz">ve tři</span> · <span class="cz">ve čtyři</span> · <span class="cz">v pět</span> · … · <span class="cz">ve dvanáct</span>.</p>
+      </div></details>
+      <details class="sheet"><summary>Fechas</summary><div>
+        <p class="small">El día va en ordinal y genitivo, y el mes también en genitivo: 8. 11. = <span class="cz">osmého listopadu</span>.</p>
+        <div class="ref" id="refDates"></div>
+      </div></details>
+    </div>
+  </section>
+
+  <!-- PROGRESO -->
+  <section id="pokrok" data-panel hidden>
+    <div class="stats">
+      <div class="stat"><span class="label">Racha</span><b id="sStreak">0</b><span class="small muted">días seguidos</span></div>
+      <div class="stat"><span class="label">Vistas</span><b id="sSeen">0</b><span class="small muted">palabras</span></div>
+      <div class="stat"><span class="label">Firmes</span><b id="sSolid">0</b><span class="small muted">intervalo ≥ 21 días</span></div>
+      <div class="stat"><span class="label">Por ver</span><b id="sLeft">0</b><span class="small muted">en temas activos</span></div>
+    </div>
+    <div class="panel">
+      <div class="spread"><h2>Repasos, últimos 30 días</h2><span class="small muted" id="sTotal"></span></div>
+      <div id="chartLog"></div>
+    </div>
+    <div class="panel">
+      <h2>Próximos 7 días</h2>
+      <div id="chartFut"></div>
+    </div>
+    <div class="panel">
+      <h2>Aciertos en gramática</h2>
+      <div class="bars" id="gramBars"></div>
+      <p class="small muted">La barra más corta es la que más conviene practicar.</p>
+    </div>
+    <div class="panel">
+      <h2>Ajustes</h2>
+      <div class="settings">
+        <label>Palabras nuevas por día
+          <select id="setNew"><option>5</option><option>10</option><option>15</option><option>20</option></select>
+        </label>
+        <label>Dirección de las tarjetas
+          <select id="setDir">
+            <option value="both">Ambas (primero checo → español)</option>
+            <option value="r">Solo checo → español</option>
+            <option value="p">Solo español → checo</option>
+          </select>
+        </label>
+        <label class="switch" style="justify-content:space-between">Escribir la respuesta en tarjetas español → checo
+          <input type="checkbox" id="setType">
+        </label>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Copia de seguridad</h2>
+      <p class="small muted">Copia tu progreso como texto para guardarlo en una nota o pasarlo a otra copia de la app (por ejemplo, el archivo en tu computadora). En la otra copia, pégalo aquí mismo y toca Importar.</p>
+      <div class="row">
+        <button class="btn quiet" type="button" id="bkCopy">Copiar mi progreso</button>
+        <button class="btn ghost" type="button" id="bkImport">Importar lo pegado</button>
+      </div>
+      <textarea id="bkText" aria-label="Progreso en texto" placeholder="Aquí aparece tu progreso al copiarlo, o pega aquí el de otra copia" spellcheck="false"></textarea>
+      <p id="bkFb" class="small" hidden></p>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+"use strict";
+/* ================= VOCABULARY =================
+   line format: checo;español;tipo;nota
+   tipo: m (masc. inanimado), ma (masc. animado), f, n, pl, v (verbo), adj, x (frase/adverbio) */
+var RAW = {
+"frases|Frases útiles":`
+Dobrý den;buenos días / buen día (formal);x
+Ahoj;hola / adiós (informal);x
+Na shledanou;hasta luego (formal);x
+Děkuju;gracias;x;también: děkuji
+Prosím;por favor / de nada / ¿mande?;x
+Promiňte;perdone;x
+Nerozumím;no entiendo;x
+Můžete to zopakovat?;¿puede repetirlo?;x
+Mluvte pomalu, prosím;hable despacio, por favor;x
+Mluvíte anglicky?;¿habla inglés?;x
+Jak se máte?;¿cómo está?;x
+Mám se dobře;estoy bien;x
+Jak se jmenujete?;¿cómo se llama (usted)?;x
+Jmenuju se…;me llamo…;x
+Těší mě;mucho gusto;x
+Dobrou chuť;buen provecho;x
+Na zdraví;¡salud!;x
+Zaplatím, prosím;la cuenta, por favor;x;lit. «pagaré»
+Kolik to stojí?;¿cuánto cuesta?;x
+Nevím;no sé;x
+Samozřejmě;por supuesto;x
+Dobrý večer;buenas noches (al saludar);x
+Dobrou noc;buenas noches (al despedirse);x
+Mějte se hezky;que le vaya bien;x
+To nevadí;no importa;x
+Je tu volno?;¿está libre (este lugar)?;x`,
+"cislovky|Números":`
+nula;0 (cero);x
+jeden / jedna / jedno;1 (uno, una);x;m / f / n
+dva / dvě;2 (dos);x;dva (m), dvě (f, n)
+tři;3 (tres);x
+čtyři;4 (cuatro);x
+pět;5 (cinco);x
+šest;6 (seis);x
+sedm;7 (siete);x
+osm;8 (ocho);x
+devět;9 (nueve);x
+deset;10 (diez);x
+jedenáct;11 (once);x
+dvanáct;12 (doce);x
+třináct;13 (trece);x
+čtrnáct;14 (catorce);x
+patnáct;15 (quince);x
+šestnáct;16 (dieciséis);x
+sedmnáct;17 (diecisiete);x
+osmnáct;18 (dieciocho);x
+devatenáct;19 (diecinueve);x
+dvacet;20 (veinte);x
+třicet;30 (treinta);x
+čtyřicet;40 (cuarenta);x
+padesát;50 (cincuenta);x
+šedesát;60 (sesenta);x
+sedmdesát;70 (setenta);x
+osmdesát;80 (ochenta);x
+devadesát;90 (noventa);x
+sto;100 (cien);x
+dvě stě;200;x
+tři sta;300;x
+pět set;500;x
+tisíc;1 000 (mil);x
+dva tisíce;2 000;x
+pět tisíc;5 000;x
+milion;un millón;m
+první;primero;adj
+druhý;segundo;adj
+třetí;tercero;adj
+čtvrtý;cuarto (ordinal);adj
+pátý;quinto;adj
+šestý;sexto;adj
+sedmý;séptimo;adj
+osmý;octavo;adj
+devátý;noveno;adj
+desátý;décimo;adj
+půl;medio;x;půl kila = medio kilo
+čtvrt;un cuarto;x
+polovina;la mitad;f
+dvakrát;dos veces;x
+Kolik?;¿cuánto(s)?;x
+poledne;mediodía;n
+půlnoc;medianoche;f`,
+"lide|Familia y personas":`
+rodina;familia;f
+máma;mamá;f
+táta;papá;ma
+matka;madre;f
+otec;padre;ma;gen. otce
+manžel;esposo;ma
+manželka;esposa;f
+sestra;hermana;f
+bratr;hermano;ma
+syn;hijo;ma
+dcera;hija;f
+babička;abuela;f
+dědeček;abuelo;ma
+dítě;niño, niña;n;pl. děti
+kamarád;amigo;ma
+kamarádka;amiga;f
+soused;vecino;ma
+sousedka;vecina;f
+muž;hombre;ma
+žena;mujer;f
+člověk;persona;ma;pl. lidé
+kočka;gato, gata;f
+pes;perro;ma;gen. psa`,
+"jidlo|Comida y bebida":`
+jídlo;comida;n
+snídaně;desayuno;f
+oběd;almuerzo, comida;m
+večeře;cena;f
+chleba;pan;m;también chléb
+rohlík;panecillo;m
+máslo;mantequilla;n
+sýr;queso;m;gen. sýra
+vejce;huevo;n
+mléko;leche;n
+jogurt;yogur;m
+maso;carne;n
+kuře;pollo;n
+ryba;pescado;f
+rýže;arroz;f
+brambory;papas;pl
+těstoviny;pasta;pl
+polévka;sopa;f
+zelenina;verduras;f
+ovoce;fruta;n
+jablko;manzana;n
+hruška;pera;f
+švestka;ciruela;f
+rajče;jitomate;n
+cibule;cebolla;f
+česnek;ajo;m;gen. česneku
+mrkev;zanahoria;f
+dýně;calabaza;f
+voda;agua;f
+káva;café;f;coloquial: kafe (n)
+čaj;té;m
+pivo;cerveza;n
+víno;vino;n
+džus;jugo;m
+cukr;azúcar;m;gen. cukru
+sůl;sal;f;gen. soli
+koláč;pan dulce, tarta;m
+dort;pastel;m
+hlad;hambre;m;Mám hlad = tengo hambre
+žízeň;sed;f;Mám žízeň = tengo sed`,
+"byt|Casa":`
+byt;departamento;m
+dům;casa, edificio;m;gen. domu
+pokoj;cuarto;m
+kuchyň;cocina;f
+koupelna;baño;f
+záchod;excusado, WC;m
+ložnice;recámara;f
+obývák;sala;m
+okno;ventana;n
+dveře;puerta;pl
+stůl;mesa;m;gen. stolu
+židle;silla;f
+postel;cama;f
+skříň;armario;f
+lednička;refrigerador;f
+pračka;lavadora;f
+klíč;llave;m
+nájem;renta;m;gen. nájmu
+světlo;luz;n
+topení;calefacción;n
+uklízet;limpiar, ordenar;v;uklízím`,
+"mesto|Ciudad y transporte":`
+město;ciudad;n
+ulice;calle;f
+náměstí;plaza;n
+nádraží;estación de tren;n;na nádraží
+zastávka;parada;f;na zastávce
+tramvaj;tranvía;f
+autobus;autobús;m
+metro;metro;n
+vlak;tren;m
+letiště;aeropuerto;n;na letišti
+jízdenka;boleto de transporte;f
+lístek;boleto;m;gen. lístku
+most;puente;m
+řeka;río;f
+hrad;castillo;m
+kostel;iglesia;m
+obchod;tienda;m
+lékárna;farmacia;f
+nemocnice;hospital;f
+pošta;oficina de correos;f;na poště
+banka;banco;f
+úřad;oficina pública;m;na úřadě
+knihovna;biblioteca;f
+vlevo;a la izquierda;x
+vpravo;a la derecha;x
+rovně;derecho;x
+nastupovat;subirse (al transporte);v;nastupuju
+vystupovat;bajarse;v;vystupuju
+přestupovat;transbordar;v;přestupuju
+Příští zastávka…;próxima parada…;x`,
+"prace|Trabajo y laboratorio":`
+práce;trabajo;f
+kancelář;oficina;f
+laboratoř;laboratorio;f
+ústav;instituto;m
+schůzka;cita, reunión;f
+porada;junta;f
+počítač;computadora;m
+pokus;experimento;m
+vzorek;muestra;m;gen. vzorku
+výsledek;resultado;m;gen. výsledku
+rostlina;planta;f
+kořen;raíz;m
+list;hoja;m
+semínko;semilla;n
+květ;flor;m
+bílkovina;proteína;f
+krystal;cristal;m
+mikroskop;microscopio;m
+článek;artículo;m;gen. článku
+přednáška;conferencia, clase;f
+vědec;científico;ma;gen. vědce
+vědkyně;científica;f
+šéf;jefe;ma
+dovolená;vacaciones;f
+smlouva;contrato;f`,
+"cas|Días, meses y tiempo":`
+pondělí;lunes;n
+úterý;martes;n
+středa;miércoles;f;ve středu
+čtvrtek;jueves;m
+pátek;viernes;m
+sobota;sábado;f
+neděle;domingo;f
+leden;enero;m
+únor;febrero;m
+březen;marzo;m
+duben;abril;m
+květen;mayo;m
+červen;junio;m
+červenec;julio;m
+srpen;agosto;m
+září;septiembre;n
+říjen;octubre;m
+listopad;noviembre;m
+prosinec;diciembre;m
+dnes;hoy;x
+zítra;mañana;x
+včera;ayer;x
+ráno;por la mañana;x
+odpoledne;por la tarde;x
+večer;por la noche (tarde-noche);x
+týden;semana;m;gen. týdne
+měsíc;mes;m
+rok;año;m
+hodina;hora;f
+minuta;minuto;f
+víkend;fin de semana;m
+teď;ahora;x
+potom;después;x
+vždycky;siempre;x
+nikdy;nunca;x
+často;seguido, a menudo;x
+někdy;a veces;x
+Kolik je hodin?;¿qué hora es?;x`,
+"slovesa|Verbos frecuentes":`
+být;ser, estar;v;jsem · pasado byl
+mít;tener;v;mám · pasado měl
+dělat;hacer;v;dělám
+mluvit;hablar;v;mluvím
+rozumět;entender;v;rozumím
+pracovat;trabajar;v;pracuju
+jít;ir (a pie);v;jdu · pasado šel
+jet;ir (en vehículo);v;jedu
+chtít;querer;v;chci
+moct;poder;v;můžu · pasado mohl
+muset;tener que;v;musím
+psát;escribir;v;píšu
+číst;leer;v;čtu · pasado četl
+pít;beber;v;piju
+jíst;comer;v;jím · pasado jedl
+spát;dormir;v;spím
+vědět;saber;v;vím
+znát;conocer;v;znám
+bydlet;vivir (residir);v;bydlím
+kupovat;comprar;v;kupuju · perf. koupit
+platit;pagar;v;platím
+vařit;cocinar;v;vařím
+studovat;estudiar;v;studuju
+učit se;aprender;v;učím se
+čekat;esperar;v;čekám
+hledat;buscar;v;hledám
+najít;encontrar;v;najdu · pasado našel
+dát si;tomar, pedir (comida);v;dám si kávu
+vidět;ver;v;vidím
+slyšet;oír;v;slyším
+otevřít;abrir;v;otevřu
+zavřít;cerrar;v;zavřu
+začínat;empezar;v;začínám
+končit;terminar;v;končím
+vstávat;levantarse;v;vstávám
+odpočívat;descansar;v;odpočívám
+cestovat;viajar;v;cestuju
+potřebovat;necesitar;v;potřebuju
+líbit se;gustar;v;Líbí se mi Praha
+mít rád;gustar, querer;v;mám ráda (fem.)
+bolet;doler;v;Bolí mě hlava`,
+"vlastnosti|Adjetivos y colores":`
+dobrý;bueno;adj
+špatný;malo;adj
+velký;grande;adj
+malý;pequeño;adj
+nový;nuevo;adj
+starý;viejo;adj
+mladý;joven;adj
+hezký;bonito;adj
+ošklivý;feo;adj
+levný;barato;adj
+drahý;caro;adj
+teplý;cálido;adj
+studený;frío;adj
+rychlý;rápido;adj
+pomalý;lento;adj
+snadný;fácil;adj
+těžký;difícil, pesado;adj
+zajímavý;interesante;adj
+nudný;aburrido;adj
+unavený;cansado;adj
+šťastný;feliz;adj
+smutný;triste;adj
+nemocný;enfermo;adj
+volný;libre;adj
+plný;lleno;adj
+prázdný;vacío;adj
+otevřený;abierto;adj
+zavřený;cerrado;adj
+blízko;cerca;x
+daleko;lejos;x
+červený;rojo;adj
+modrý;azul;adj
+zelený;verde;adj
+žlutý;amarillo;adj
+černý;negro;adj
+bílý;blanco;adj
+šedý;gris;adj
+hnědý;café (color);adj`,
+"zdravi|Cuerpo y salud":`
+hlava;cabeza;f
+ruka;mano, brazo;f
+noha;pie, pierna;f
+oko;ojo;n;pl. oči
+ucho;oreja;n;pl. uši
+zub;diente;m
+břicho;panza;n
+záda;espalda;pl
+krk;cuello, garganta;m
+lékař;médico;ma
+zubař;dentista;ma
+recept;receta médica;m
+lék;medicina;m
+nachlazení;resfriado;n
+horečka;fiebre;f
+pojištění;seguro;n
+Bolí mě v krku;me duele la garganta;x`,
+"sluzby|Compras y trámites":`
+peníze;dinero;pl
+koruna;corona;f;2–4 koruny, 5+ korun
+karta;tarjeta;f
+hotově;en efectivo;x
+účet;cuenta;m;gen. účtu
+cena;precio;f
+sleva;descuento;f
+akce;oferta (en el súper);f
+taška;bolsa;f
+pokladna;caja;f
+otevírací doba;horario de apertura;f
+formulář;formulario;m
+razítko;sello;n
+podpis;firma;m
+pas;pasaporte;m
+adresa;dirección;f
+Můžu platit kartou?;¿puedo pagar con tarjeta?;x
+Chcete tašku?;¿quiere bolsa?;x
+Účtenku, prosím;el ticket, por favor;x`,
+"pocasi|Clima y ropa":`
+počasí;clima, tiempo;n
+slunce;sol;n
+déšť;lluvia;m;gen. deště
+sníh;nieve;m;gen. sněhu
+vítr;viento;m;gen. větru
+mrak;nube;m
+Prší;llueve;x
+Sněží;nieva;x
+Je zima;hace frío;x
+Je teplo;hace calor;x
+jaro;primavera;n
+léto;verano;n
+podzim;otoño;m
+zima;invierno, frío;f
+deštník;paraguas;m
+oblečení;ropa;n
+bunda;chamarra;f
+kabát;abrigo;m
+svetr;suéter;m
+tričko;playera;n
+košile;camisa;f
+kalhoty;pantalón;pl
+sukně;falda;f
+šaty;vestido;pl
+boty;zapatos;pl
+ponožky;calcetines;pl
+čepice;gorro;f
+šála;bufanda;f
+rukavice;guantes;pl`,
+"volno|Tiempo libre":`
+volný čas;tiempo libre;m
+kino;cine;n
+divadlo;teatro;n
+koncert;concierto;m;na koncertě
+výstava;exposición;f
+muzeum;museo;n
+kniha;libro;f
+film;película;m
+hudba;música;f
+procházka;paseo;f;jít na procházku
+výlet;excursión;m
+hory;montañas;pl
+les;bosque;m
+zahrada;jardín;f
+sport;deporte;m
+plavat;nadar;v;plavu
+běhat;correr;v;běhám
+tancovat;bailar;v;tancuju
+fotit;tomar fotos;v;fotím
+hrát;jugar, tocar;v;hraju`
+};
+var THEMES = Object.keys(RAW).map(function(k){
+  var p=k.split('|');
+  var words=RAW[k].trim().split('\n').map(function(l){var a=l.split(';');return {cz:a[0].trim(),es:a[1].trim(),g:(a[2]||'').trim(),note:(a[3]||'').trim(),theme:p[0]}});
+  return {id:p[0],name:p[1],words:words};
+});
+var GLABEL={m:'m. inan.',ma:'m. anim.',f:'fem.',n:'neutro',pl:'plural',v:'verbo',adj:'adj.',x:'frase',u:'tuya'};
+
+/* ================= STATE + STORAGE ================= */
+var LSKEY='opakovani-v1';
+function fresh(){return {v:1,t:0,cards:{},log:{},newLog:{},gram:{},mine:[],settings:{newPerDay:10,dir:'both',type:false,off:[]}}}
+var state=fresh(), ref=null, mode='loading', writing=false, pending=false, timer=null;
+function loadLocal(){try{var s=localStorage.getItem(LSKEY);return s?JSON.parse(s):null}catch(e){return null}}
+function saveLocal(){try{localStorage.setItem(LSKEY,JSON.stringify(state))}catch(e){}}
+function normalize(s){var f=fresh();s=s||{};for(var k in f){if(s[k]===undefined)s[k]=f[k]}for(var k2 in f.settings){if(s.settings[k2]===undefined)s.settings[k2]=f.settings[k2]}return s}
+function setChip(kind,text){var c=document.getElementById('saveChip');c.className='chip '+(kind||'');c.lastElementChild.textContent=text}
+function save(){
+  state.t=Date.now();saveLocal();
+  if(!ref){return}
+  pending=true;clearTimeout(timer);timer=setTimeout(flush,1200);
+}
+function flush(){
+  if(!ref||writing||!pending)return;
+  writing=true;pending=false;setChip('warn','Guardando…');
+  var body=JSON.parse(JSON.stringify(state));
+  ref.set(body).then(function(){writing=false;setChip('ok','Guardado en tu cuenta');if(pending)flush()},
+    function(e){writing=false;
+      if(e&&e.code==='invalid_argument'){ref=null;setChip('warn','Guardado solo en este navegador')}
+      else if(e&&e.code==='quota_exceeded'){setChip('warn','Sin espacio en tu cuenta; guardado en este navegador')}
+      else{pending=true;setChip('warn','Sin conexión; se guardará luego');setTimeout(flush,8000)}
+    });
+}
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden'){clearTimeout(timer);flush()}});
+
+function initStore(){
+  var local=loadLocal();
+  if(local){state=normalize(local)}
+  setChip('warn','Guardado en este navegador');
+  renderAll();
+  var c=window.claude;
+  if(!c||typeof c.use!=='function'){return}
+  Promise.all([c.use('db'),c.use('user')]).then(function(r){
+    var db=r[0],user=r[1];
+    if(!db||!user)return null;
+    return user.id().then(function(uid){
+      if(!uid)return null;
+      var dref=db.doc('data/users/'+uid+'/estado');
+      var to=new Promise(function(res){setTimeout(function(){res('timeout')},10000)});
+      return Promise.race([dref.get(),to]).then(function(snap){
+        ref=dref;
+        if(snap==='timeout'){setChip('warn','Sin conexión; se guardará luego');return}
+        if(snap.exists){
+          var remote=normalize(JSON.parse(JSON.stringify(snap.data())));
+          if(!local||(remote.t||0)>=(local.t||0)){state=remote;saveLocal();session=null;renderAll()}
+          else{save()}
+        }else if(local&&local.t){save()}
+        setChip('ok','Guardado en tu cuenta');
+      });
+    });
+  }).catch(function(){setChip('warn','Guardado en este navegador')});
+}
+
+/* ================= DATES ================= */
+function dayIdx(d){d=d||new Date();return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5)}
+function dayKey(i){var d=new Date(i*864e5);return d.toISOString().slice(0,10)}
+var TODAY=dayIdx();
+var DN=['neděle','pondělí','úterý','středa','čtvrtek','pátek','sobota'];
+var MG=['ledna','února','března','dubna','května','června','července','srpna','září','října','listopadu','prosince'];
+(function(){var d=new Date();document.getElementById('czDate').textContent=DN[d.getDay()]+' '+d.getDate()+'. '+MG[d.getMonth()]})();
+
+/* ================= HELPERS ================= */
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function norm(s){return String(s).toLowerCase().replace(/[.,!?¿¡]/g,' ').replace(/\s+/g,' ').trim()}
+function plain(s){return s.normalize('NFD').replace(/[̀-ͯ]/g,'')}
+function rnd(a,b){return a+Math.floor(Math.random()*(b-a+1))}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
+function check(input,answers){
+  var v=norm(input);if(!v)return null;
+  var A=answers.map(norm);
+  if(A.indexOf(v)>-1)return 'ok';
+  if(A.map(plain).indexOf(plain(v))>-1)return 'near';
+  return 'bad';
+}
+var voice=null;
+function pickVoice(){try{voice=speechSynthesis.getVoices().filter(function(x){return /^cs/i.test(x.lang)})[0]||null}catch(e){}}
+if('speechSynthesis' in window){pickVoice();try{speechSynthesis.onvoiceschanged=pickVoice}catch(e){}}
+function say(text){
+  if(!('speechSynthesis' in window))return false;
+  try{var u=new SpeechSynthesisUtterance(text.replace('…',''));u.lang='cs-CZ';u.rate=.88;if(voice)u.voice=voice;speechSynthesis.cancel();speechSynthesis.speak(u);return true}catch(e){return false}
+}
+function bump(obj,key,n){obj[key]=(obj[key]||0)+(n||1)}
+function gramAdd(key,good){var g=state.gram[key]||[0,0];g=[g[0]+(good?1:0),g[1]+1];state.gram[key]=g;save()}
+
+/* ================= WORDS ================= */
+function allWords(){
+  var mine=state.mine.map(function(m){return {cz:m.cz,es:m.es,g:'u',note:m.note||'',theme:'mine'}});
+  return {mine:mine,map:(function(){var M={};THEMES.forEach(function(t){t.words.forEach(function(w){M[w.cz]=w})});mine.forEach(function(w){M[w.cz]=w});return M})()};
+}
+function wid(w,d){return (w.theme==='mine'?'u:':'w:')+w.cz+'|'+d}
+function firstDir(){return state.settings.dir==='p'?'p':'r'}
+function seenWord(w){return !!(state.cards[wid(w,'r')]||state.cards[wid(w,'p')])}
+function strength(w){var a=state.cards[wid(w,'r')],b=state.cards[wid(w,'p')];var i=Math.max(a?a.i:-1,b?b.i:-1);if(i<0&&!a&&!b)return 0;return i>=21?2:1}
+
+/* ================= SRS ================= */
+function sched(c,g){
+  c=c?{i:c.i,e:c.e,r:c.r,l:c.l,d:c.d}:{i:0,e:2.5,r:0,l:0,d:TODAY};
+  if(g===0){c.l++;c.e=Math.max(1.3,c.e-.2);c.i=0;c.d=TODAY}
+  else{
+    if(g===1){c.i=Math.max(1,Math.round(c.i*1.2));c.e=Math.max(1.3,c.e-.15)}
+    else if(g===2){c.i=c.i<1?1:c.i<3?3:Math.round(c.i*c.e)}
+    else{c.i=c.i<1?4:Math.round(c.i*c.e*1.3);c.e=Math.min(3.2,c.e+.15)}
+    c.i=Math.min(c.i,365);c.d=TODAY+c.i;
+  }
+  c.r++;return c;
+}
+function ivLabel(c,g){if(g===0)return 'hoy';var n=sched(c,g).i;return n<30?n+' d':n<365?Math.round(n/30)+' m':'1 a'}
+
+var session=null;
+function buildSession(){
+  var W=allWords(),M=W.map,due=[],news=[];
+  Object.keys(state.cards).forEach(function(id){
+    var c=state.cards[id];if(c.d>TODAY)return;
+    var m=id.match(/^[wu]:(.*)\|([rp])$/);if(!m||!M[m[1]])return;
+    if(state.settings.dir==='r'&&m[2]==='p')return;
+    if(state.settings.dir==='p'&&m[2]==='r')return;
+    due.push({w:M[m[1]],d:m[2],isNew:false});
+  });
+  var left=Math.max(0,(+state.settings.newPerDay)-(state.newLog[dayKey(TODAY)]||0));
+  var fd=firstDir();
+  var cand=W.mine.filter(function(w){return !seenWord(w)});
+  var pools=THEMES.filter(function(t){return state.settings.off.indexOf(t.id)<0}).map(function(t){return t.words.filter(function(w){return !seenWord(w)})});
+  var k=0;while(cand.length<left+40&&pools.some(function(p){return p.length})){var p=pools[k%pools.length];if(p.length)cand.push(p.shift());k++}
+  cand.slice(0,left).forEach(function(w){news.push({w:w,d:fd,isNew:true})});
+  shuffle(due);
+  var q=[],ni=0;
+  due.forEach(function(x,i){q.push(x);if(i%3===2&&ni<news.length)q.push(news[ni++])});
+  while(ni<news.length)q.push(news[ni++]);
+  session={day:TODAY,q:q,pos:0,done:0,total:q.length,revealed:false,typed:null};
+}
+function updateCounts(){
+  if(!session)return;
+  var rest=session.q.slice(session.pos);
+  document.getElementById('cNew').textContent=rest.filter(function(x){return x.isNew}).length;
+  document.getElementById('cDue').textContent=rest.filter(function(x){return !x.isNew}).length;
+  document.getElementById('cDone').textContent=state.log[dayKey(TODAY)]||0;
+  var pct=session.total?Math.min(100,Math.round(session.pos/session.q.length*100)):100;
+  document.getElementById('sessBar').style.width=pct+'%';
+}
+function renderCard(){
+  var el=document.getElementById('card');
+  if(!session||session.day!==TODAY)buildSession();
+  updateCounts();
+  var it=session.q[session.pos];
+  if(!it){
+    var extra=state.settings.newPerDay;
+    el.innerHTML='<span class="label">Dnes hotovo</span><p class="word">Listo por hoy</p>'+
+      '<p class="muted">'+(session.total?'Repasaste todo lo pendiente. ':'No hay tarjetas pendientes. ')+'Si te quedan ganas, practica un ejercicio de gramática o añade 5 palabras nuevas más.</p>'+
+      '<div class="row" style="margin-top:auto"><button class="btn" type="button" id="more5">5 palabras nuevas más</button><button class="btn ghost" type="button" id="toGram">Ir a gramática</button></div>';
+    document.getElementById('more5').onclick=function(){state.newLog[dayKey(TODAY)]=(state.newLog[dayKey(TODAY)]||0)-5;save();session=null;renderCard()};
+    document.getElementById('toGram').onclick=function(){showTab('gramatika')};
+    return;
+  }
+  var w=it.w,cid=wid(w,it.d),c=state.cards[cid];
+  var tagCls=w.g==='ma'?'m':w.g;
+  var tag='<span class="tag '+esc(tagCls)+'">'+esc(GLABEL[w.g]||w.g)+'</span>';
+  var head='<div class="dir"><span class="label">'+(it.d==='r'?'Checo → español':'Español → checo')+(it.isNew?' · nueva':'')+'</span>'+tag+'</div>';
+  var front=it.d==='r'
+    ?'<p class="word">'+esc(w.cz)+'</p><div><button class="speak" type="button" data-say>▶ Escuchar</button></div>'
+    :'<p class="word">'+esc(w.es)+'</p>';
+  var typing=it.d==='p'&&state.settings.type&&!session.revealed;
+  var body=head+front;
+  if(typing){
+    body+='<form class="row" id="typeForm" autocomplete="off"><input type="text" id="typeIn" placeholder="Escríbelo en checo" aria-label="Respuesta en checo" spellcheck="false"><button class="btn" type="submit">Comprobar</button></form>';
+  }
+  if(session.revealed){
+    var fb='';
+    if(session.typed){fb='<p class="fb '+session.typed.r+'">'+(session.typed.r==='ok'?'Správně.':session.typed.r==='near'?'Casi: revisa los acentos.':'Escribiste: '+esc(session.typed.v))+'</p>'}
+    body+='<div class="answer">'+(it.d==='r'
+      ?'<p class="word">'+esc(w.es)+'</p>'
+      :'<p class="word">'+esc(w.cz)+'</p><div><button class="speak" type="button" data-say>▶ Escuchar</button></div>')+
+      (w.note?'<p class="note">'+esc(w.note)+'</p>':'')+fb+'</div>';
+    body+='<div class="grades">'+['Otra vez','Difícil','Bien','Fácil'].map(function(t,g){return '<button type="button" class="g'+g+'" data-grade="'+g+'">'+t+'<small>'+ivLabel(c,g)+'</small></button>'}).join('')+'</div>';
+  }else if(!typing){
+    body+='<button class="btn" type="button" id="reveal" style="margin-top:auto">Mostrar respuesta</button>';
+  }
+  el.innerHTML=body;
+  [].forEach.call(el.querySelectorAll('[data-say]'),function(b){b.onclick=function(){if(!say(w.cz))b.textContent='Sin voz checa en este navegador'}});
+  var rv=document.getElementById('reveal');if(rv)rv.onclick=reveal;
+  var tf=document.getElementById('typeForm');
+  if(tf){tf.onsubmit=function(e){e.preventDefault();var v=document.getElementById('typeIn').value;session.typed={v:v,r:check(v,[w.cz])||'bad'};reveal()};setTimeout(function(){try{document.getElementById('typeIn').focus()}catch(e){}},30)}
+  [].forEach.call(el.querySelectorAll('[data-grade]'),function(b){b.onclick=function(){grade(+b.dataset.grade)}});
+  if(it.d==='r'&&!session.revealed&&it.isNew){/* new recognition card: let her hear it */}
+}
+function reveal(){
+  if(!session||session.revealed)return;session.revealed=true;
+  var it=session.q[session.pos];if(it&&it.d==='p')say(it.w.cz);
+  renderCard();
+}
+function grade(g){
+  var it=session.q[session.pos];if(!it||!session.revealed)return;
+  var id=wid(it.w,it.d),old=state.cards[id];
+  if(it.isNew&&!old)bump(state.newLog,dayKey(TODAY));
+  state.cards[id]=sched(old,g);
+  bump(state.log,dayKey(TODAY));
+  if(state.settings.dir==='both'&&it.d==='r'&&g>=2){
+    var pid=wid(it.w,'p');if(!state.cards[pid])state.cards[pid]={i:0,e:2.5,r:0,l:0,d:TODAY+1};
+  }
+  if(g===0){var at=Math.min(session.q.length,session.pos+4);session.q.splice(at,0,{w:it.w,d:it.d,isNew:false})}
+  session.pos++;session.revealed=false;session.typed=null;
+  save();renderCard();
+}
+document.addEventListener('keydown',function(e){
+  if(document.getElementById('dnes').hidden)return;
+  if(e.target&&(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'))return;
+  if(e.key===' '){e.preventDefault();if(!session.revealed){var it=session.q[session.pos];if(it&&!(it.d==='p'&&state.settings.type))reveal()}}
+  else if(/^[1-4]$/.test(e.key)&&session&&session.revealed){grade(+e.key-1)}
+});
+
+/* ================= WORDS TAB ================= */
+function renderThemes(){
+  var box=document.getElementById('themes'),q=norm(document.getElementById('search').value||'');
+  var W=allWords();
+  var groups=[{id:'mine',name:'Mis palabras',words:W.mine}].concat(THEMES);
+  var openSet={};[].forEach.call(box.querySelectorAll('details[open]'),function(d){openSet[d.dataset.id]=1});
+  box.innerHTML='';
+  groups.forEach(function(t){
+    if(t.id==='mine'&&!t.words.length&&!q)return;
+    var words=q?t.words.filter(function(w){return plain(norm(w.cz)).indexOf(plain(q))>-1||plain(norm(w.es)).indexOf(plain(q))>-1}):t.words;
+    if(q&&!words.length)return;
+    var seen=t.words.filter(seenWord).length;
+    var d=document.createElement('details');d.className='theme';d.dataset.id=t.id;if(openSet[t.id]||q)d.open=true;
+    var on=t.id==='mine'||state.settings.off.indexOf(t.id)<0;
+    d.innerHTML='<summary><span><h3>'+esc(t.name)+'</h3><span class="small muted">'+seen+' de '+t.words.length+' vistas'+(on?'':' · pausado')+'</span></span><span class="mini" aria-hidden="true"><span style="width:'+(t.words.length?Math.round(seen/t.words.length*100):0)+'%"></span></span></summary>';
+    if(t.id!=='mine'){
+      var sw=document.createElement('label');sw.className='switch';
+      sw.innerHTML='<input type="checkbox" id="on-'+t.id+'"'+(on?' checked':'')+'> Incluir en palabras nuevas';
+      sw.querySelector('input').onchange=function(){var i=state.settings.off.indexOf(t.id);if(this.checked){if(i>-1)state.settings.off.splice(i,1)}else if(i<0)state.settings.off.push(t.id);save();session=null;renderThemes()};
+      d.appendChild(sw);
+    }
+    var ul=document.createElement('ul');ul.className='wl';
+    words.forEach(function(w){
+      var s=strength(w),li=document.createElement('li');
+      li.innerHTML='<span class="dot '+(s===2?'m':s===1?'l':'')+'" title="'+(s===2?'firme':s===1?'aprendiendo':'sin ver')+'"></span><span class="cz"></span><span class="muted"></span>';
+      li.children[1].textContent=w.cz;li.children[2].textContent=w.es+(w.note?' · '+w.note:'');
+      var tail=document.createElement('span');
+      if(t.id==='mine'){var x=document.createElement('button');x.className='x';x.type='button';x.setAttribute('aria-label','Borrar '+w.cz);x.textContent='×';
+        x.onclick=function(){if(x.dataset.sure){state.mine=state.mine.filter(function(m){return m.cz!==w.cz});delete state.cards[wid(w,'r')];delete state.cards[wid(w,'p')];save();session=null;renderThemes()}else{x.dataset.sure=1;x.textContent='¿borrar?';x.style.color='var(--bad)'}};tail.appendChild(x)}
+      else{var sp=document.createElement('button');sp.className='x';sp.type='button';sp.setAttribute('aria-label','Escuchar '+w.cz);sp.textContent='▶';sp.onclick=function(){say(w.cz)};tail.appendChild(sp)}
+      li.appendChild(tail);ul.appendChild(li);
+    });
+    d.appendChild(ul);box.appendChild(d);
+  });
+  if(!box.children.length)box.innerHTML='<p class="muted">Ninguna palabra coincide con la búsqueda.</p>';
+}
+document.getElementById('search').addEventListener('input',renderThemes);
+document.getElementById('addForm').addEventListener('submit',function(e){
+  e.preventDefault();
+  var cz=document.getElementById('addCz').value.trim(),es=document.getElementById('addEs').value.trim(),note=document.getElementById('addNote').value.trim();
+  var fb=document.getElementById('addFb');fb.hidden=false;
+  if(!cz||!es){fb.textContent='Escribe la palabra en checo y su traducción.';return}
+  if(state.mine.some(function(m){return m.cz===cz})){fb.textContent='«'+cz+'» ya está en tus palabras.';return}
+  state.mine.push({cz:cz,es:es,note:note});save();session=null;
+  fb.textContent='Añadida: '+cz+' = '+es+'. Aparecerá en tus palabras nuevas.';
+  ['addCz','addEs','addNote'].forEach(function(i){document.getElementById(i).value=''});
+  document.getElementById('addCz').focus();renderThemes();
+});
+
+/* ================= GRAMMAR: CASES ================= */
+// forms: G D A L I ; alt: extra accepted forms
+var PLACES=[
+ ['pošta','na',['pošty','poště','poštu','poště','poštou']],
+ ['škola','v',['školy','škole','školu','škole','školou']],
+ ['Praha','v',['Prahy','Praze','Prahu','Praze','Prahou']],
+ ['Brno','v',['Brna','Brnu','Brno','Brně','Brnem']],
+ ['Mexiko','v',['Mexika','Mexiku','Mexiko','Mexiku','Mexikem']],
+ ['kino','v',['kina','kinu','kino','kině','kinem']],
+ ['práce','v',['práce','práci','práci','práci','prací']],
+ ['obchod','v',['obchodu','obchodu','obchod','obchodě','obchodem'],{L:['obchodu']}],
+ ['park','v',['parku','parku','park','parku','parkem']],
+ ['restaurace','v',['restaurace','restauraci','restauraci','restauraci','restaurací']],
+ ['kancelář','v',['kanceláře','kanceláři','kancelář','kanceláři','kanceláří']],
+ ['laboratoř','v',['laboratoře','laboratoři','laboratoř','laboratoři','laboratoří']],
+ ['banka','v',['banky','bance','banku','bance','bankou']],
+ ['knihovna','v',['knihovny','knihovně','knihovnu','knihovně','knihovnou']],
+ ['nemocnice','v',['nemocnice','nemocnici','nemocnici','nemocnici','nemocnicí']],
+ ['nádraží','na',['nádraží','nádraží','nádraží','nádraží','nádražím']],
+ ['letiště','na',['letiště','letišti','letiště','letišti','letištěm']],
+ ['úřad','na',['úřadu','úřadu','úřad','úřadě','úřadem'],{L:['úřadu']}],
+ ['koncert','na',['koncertu','koncertu','koncert','koncertě','koncertem'],{L:['koncertu']}]
+];
+var PEOPLE=[
+ ['kamarád',['kamaráda','kamarádovi','kamaráda','kamarádovi','kamarádem']],
+ ['kamarádka',['kamarádky','kamarádce','kamarádku','kamarádce','kamarádkou']],
+ ['máma',['mámy','mámě','mámu','mámě','mámou']],
+ ['manžel',['manžela','manželovi','manžela','manželovi','manželem']],
+ ['sestra',['sestry','sestře','sestru','sestře','sestrou']],
+ ['bratr',['bratra','bratrovi','bratra','bratrovi','bratrem']],
+ ['kolega',['kolegy','kolegovi','kolegu','kolegovi','kolegou']],
+ ['doktor',['doktora','doktorovi','doktora','doktorovi','doktorem']],
+ ['šéf',['šéfa','šéfovi','šéfa','šéfovi','šéfem']],
+ ['kočka',['kočky','kočce','kočku','kočce','kočkou']],
+ ['pes',['psa','psovi','psa','psovi','psem']]
+];
+var FOOD=[
+ ['mléko',['mléka','mléku','mléko','mléce','mlékem']],
+ ['cukr',['cukru','cukru','cukr','cukru','cukrem']],
+ ['citron',['citronu','citronu','citron','citronu','citronem']],
+ ['sýr',['sýra','sýru','sýr','sýru','sýrem']],
+ ['maso',['masa','masu','maso','mase','masem']],
+ ['cibule',['cibule','cibuli','cibuli','cibuli','cibulí']],
+ ['rýže',['rýže','rýži','rýži','rýži','rýží']],
+ ['med',['medu','medu','med','medu','medem']]
+];
+var CI={G:0,D:1,A:2,L:3,I:4};
+var CNAME={G:'genitiv',D:'dativ',A:'akuzativ',L:'lokál',I:'instrumentál'};
+function voc(p,w){
+  var a=w.toLowerCase(),f=a[0],cons=/[bcčdďfghjklmnňpqrřsštťvwxzž]/;
+  var cluster=cons.test(a[0])&&cons.test(a[1]||'');
+  if(p==='v'&&(f==='v'||f==='f'||(cluster&&'sšzžčř'.indexOf(f)>-1)))return 've';
+  if(p==='z'&&'szšž'.indexOf(f)>-1)return 'ze';
+  if(p==='k'&&'kg'.indexOf(f)>-1)return 'ke';
+  if(p==='s'&&'szšž'.indexOf(f)>-1)return 'se';
+  return p;
+}
+function makePady(){
+  var m=document.getElementById('padyMode').value,kinds=m==='all'?['place','place','person','food']:[m],k=pick(kinds),q={};
+  if(k==='place'){
+    var P=pick(PLACES),n=P[0],pre=P[1],f=P[2],alt=P[3]||{},qq=pick(['kde','kam','odkud']);
+    if(qq==='kde'){var c='L';q.prep=pre;q.frame='Jsem ___.';}
+    else if(qq==='kam'){c=pre==='na'?'A':'G';q.prep=pre==='na'?'na':'do';q.frame=pick(['Jdu ___.','Jedu ___.']);}
+    else{c='G';q.prep='z';q.frame='Jdu ___.';q.frame=pick(['Jdu ___.','Jedu ___.']);}
+    var forms=[f[CI[c]]].concat(alt[c]||[]);
+    q.q=qq.charAt(0).toUpperCase()+qq.slice(1)+'?';q.noun=n;q.case=c;
+    q.ans=forms.map(function(x){return voc(q.prep,x)+' '+x});
+  }else if(k==='person'){
+    var Pp=pick(PEOPLE),opts=[['s','I','Jdu do kina ___.','¿con quién?'],['k','D','Jdu ___.','¿a casa/con quién voy?'],['u','G','Jsem ___.','¿en casa de quién?'],['pro','A','Mám dárek ___.','¿para quién?'],['o','L','Mluvíme ___.','¿de quién?'],['bez','G','Jdu tam ___.','¿sin quién?']];
+    var o=pick(opts);q.prep=o[0];q.case=o[1];q.frame=o[2];q.q=o[0]+' + ';q.noun=Pp[0];
+    var fm=Pp[1][CI[o[1]]];q.ans=[voc(o[0],fm)+' '+fm];
+  }else{
+    var F=pick(FOOD),o2=pick([['s','I','Čaj ___, prosím.'],['bez','G','Kávu ___, prosím.']]);
+    q.prep=o2[0];q.case=o2[1];q.frame=o2[2];q.q=o2[0]+' + ';q.noun=F[0];
+    var fm2=F[1][CI[o2[1]]];q.ans=[voc(o2[0],fm2)+' '+fm2];
+  }
+  q.kind=k;return q;
+}
+var pady=null,padyDone=false;
+function newPady(){
+  pady=makePady();padyDone=false;
+  var pr=document.getElementById('padyPrompt');
+  var cue=pady.kind==='place'?'<em>'+pady.q+'</em> · '+esc(pady.noun):'<em>'+esc(pady.prep)+'</em> + '+esc(pady.noun);
+  pr.innerHTML=cue+'<br><span class="muted" style="font-size:1rem;font-family:var(--body)">'+esc(pady.frame).replace('___','<span class="blank"></span>')+'</span>';
+  document.getElementById('padyIn').value='';document.getElementById('padyFb').innerHTML='';
+}
+document.getElementById('padyForm').addEventListener('submit',function(e){
+  e.preventDefault();var r=check(document.getElementById('padyIn').value,pady.ans);if(!r)return;
+  if(!padyDone){padyDone=true;gramAdd(pady.case,r==='ok')}
+  var full=pady.frame.replace('___',pady.ans[0]);
+  document.getElementById('padyFb').innerHTML='<p class="fb '+r+'">'+(r==='ok'?'Správně. ':r==='near'?'Casi, revisa los acentos: ':'Es: ')+'<strong>'+esc(pady.ans[0])+'</strong> ('+CNAME[pady.case]+') · '+esc(full)+'</p>';
+  if(r==='ok')setTimeout(function(){if(padyDone)document.getElementById('padyNext').focus()},10);
+});
+document.getElementById('padyNext').addEventListener('click',function(){newPady();document.getElementById('padyIn').focus()});
+document.getElementById('padyMode').addEventListener('change',newPady);
+
+/* ================= GRAMMAR: VERBS ================= */
+var VERBS=[
+ ['být','ser, estar','jsem,jsi,je,jsme,jste,jsou','byl'],
+ ['mít','tener','mám,máš,má,máme,máte,mají','měl'],
+ ['dělat','hacer','dělám,děláš,dělá,děláme,děláte,dělají','dělal'],
+ ['mluvit','hablar','mluvím,mluvíš,mluví,mluvíme,mluvíte,mluví','mluvil'],
+ ['rozumět','entender','rozumím,rozumíš,rozumí,rozumíme,rozumíte,rozumějí|rozumí','rozuměl'],
+ ['pracovat','trabajar','pracuju|pracuji,pracuješ,pracuje,pracujeme,pracujete,pracujou|pracují','pracoval'],
+ ['jít','ir a pie','jdu,jdeš,jde,jdeme,jdete,jdou','šel'],
+ ['jet','ir en vehículo','jedu,jedeš,jede,jedeme,jedete,jedou','jel'],
+ ['chtít','querer','chci,chceš,chce,chceme,chcete,chtějí','chtěl'],
+ ['moct','poder','můžu|mohu,můžeš,může,můžeme,můžete,můžou|mohou','mohl'],
+ ['muset','tener que','musím,musíš,musí,musíme,musíte,musí|musejí','musel'],
+ ['psát','escribir','píšu|píši,píšeš,píše,píšeme,píšete,píšou|píší','psal'],
+ ['číst','leer','čtu,čteš,čte,čteme,čtete,čtou','četl'],
+ ['pít','beber','piju|piji,piješ,pije,pijeme,pijete,pijou|pijí','pil'],
+ ['jíst','comer','jím,jíš,jí,jíme,jíte,jedí','jedl'],
+ ['spát','dormir','spím,spíš,spí,spíme,spíte,spí','spal'],
+ ['vědět','saber','vím,víš,ví,víme,víte,vědí','věděl'],
+ ['znát','conocer','znám,znáš,zná,známe,znáte,znají','znal'],
+ ['bydlet','vivir','bydlím,bydlíš,bydlí,bydlíme,bydlíte,bydlí','bydlel'],
+ ['kupovat','comprar','kupuju|kupuji,kupuješ,kupuje,kupujeme,kupujete,kupujou|kupují','kupoval'],
+ ['platit','pagar','platím,platíš,platí,platíme,platíte,platí','platil'],
+ ['vařit','cocinar','vařím,vaříš,vaří,vaříme,vaříte,vaří','vařil'],
+ ['studovat','estudiar','studuju|studuji,studuješ,studuje,studujeme,studujete,studujou|studují','studoval'],
+ ['čekat','esperar','čekám,čekáš,čeká,čekáme,čekáte,čekají','čekal'],
+ ['vidět','ver','vidím,vidíš,vidí,vidíme,vidíte,vidí','viděl'],
+ ['potřebovat','necesitar','potřebuju|potřebuji,potřebuješ,potřebuje,potřebujeme,potřebujete,potřebujou|potřebují','potřeboval'],
+ ['hrát','jugar, tocar','hraju|hraji,hraješ,hraje,hrajeme,hrajete,hrajou|hrají','hrál'],
+ ['cestovat','viajar','cestuju|cestuji,cestuješ,cestuje,cestujeme,cestujete,cestujou|cestují','cestoval']
+];
+var PERS=['já','ty','on / ona','my','vy','oni'];
+function pastForms(m){var f=m==='šel'?'šla':m+'a',pl=m==='šel'?'šli':m+'i';return {m:m,f:f,pl:pl}}
+var verb=null,verbDone=false;
+function newVerb(){
+  var V=pick(VERBS),md=document.getElementById('verbMode').value,tense=md==='mix'?pick(['pres','pres','past']):md;
+  var q={inf:V[0],es:V[1],tense:tense};
+  if(tense==='pres'){var i=rnd(0,5);q.who=PERS[i];q.ans=V[2].split(',')[i].split('|')}
+  else{
+    var p=pastForms(V[3]);
+    var opts=[['já (yo, ella)',p.f+' jsem'],['já (yo, él)',p.m+' jsem'],['ty (tú, ella)',p.f+' jsi'],['ty (tú, él)',p.m+' jsi'],['on',p.m],['ona',p.f],['my',p.pl+' jsme'],['vy (ustedes)',p.pl+' jste'],['oni',p.pl]];
+    var o=pick(opts);q.who=o[0];q.ans=[o[1]];
+  }
+  verb=q;verbDone=false;
+  document.getElementById('verbPrompt').innerHTML='<em>'+esc(q.who)+'</em> · '+esc(q.inf)+'<br><span class="muted" style="font-size:1rem;font-family:var(--body)">'+esc(q.es)+' · '+(q.tense==='pres'?'presente':'pasado')+'</span>';
+  document.getElementById('verbIn').value='';document.getElementById('verbFb').innerHTML='';
+}
+document.getElementById('verbForm').addEventListener('submit',function(e){
+  e.preventDefault();var r=check(document.getElementById('verbIn').value,verb.ans);if(!r)return;
+  if(!verbDone){verbDone=true;gramAdd(verb.tense,r==='ok')}
+  document.getElementById('verbFb').innerHTML='<p class="fb '+r+'">'+(r==='ok'?'Správně':r==='near'?'Casi, revisa los acentos':'Es')+': <strong>'+esc(verb.ans.join(' / '))+'</strong></p>';
+});
+document.getElementById('verbNext').addEventListener('click',function(){newVerb();document.getElementById('verbIn').focus()});
+document.getElementById('verbMode').addEventListener('change',newVerb);
+
+/* ================= GRAMMAR: NUMBERS ================= */
+var U=['','jedna','dva','tři','čtyři','pět','šest','sedm','osm','devět','deset','jedenáct','dvanáct','třináct','čtrnáct','patnáct','šestnáct','sedmnáct','osmnáct','devatenáct'];
+var T=['','','dvacet','třicet','čtyřicet','padesát','šedesát','sedmdesát','osmdesát','devadesát'];
+var H=['','sto','dvě stě','tři sta','čtyři sta','pět set','šest set','sedm set','osm set','devět set'];
+function b100(n){return n<20?U[n]:T[Math.floor(n/10)]+(n%10?' '+U[n%10]:'')}
+function cz(n){var p=[],th=Math.floor(n/1000),r=n%1000;
+  if(th)p.push(th===1?'tisíc':th<5?['','','dva','tři','čtyři'][th]+' tisíce':b100(th)+' tisíc');
+  if(Math.floor(r/100))p.push(H[Math.floor(r/100)]);if(r%100)p.push(b100(r%100));return p.join(' ')||'nula'}
+function korun(n){var t=n%100,u=n%10;return (t>=10&&t<20)?'korun':(u>=2&&u<=4)?'koruny':'korun'}
+function price(n){var s=cz(n),t=n%100;if(n%10===2&&!(t>=10&&t<20))s=s.replace(/dva$/,'dvě');return s+' '+korun(n)}
+var ORDG=['','prvního','druhého','třetího','čtvrtého','pátého','šestého','sedmého','osmého','devátého','desátého','jedenáctého','dvanáctého','třináctého','čtrnáctého','patnáctého','šestnáctého','sedmnáctého','osmnáctého','devatenáctého','dvacátého'];
+var ORDU=['','jedna','dva','tři','čtyři','pět','šest','sedm','osm','devět'];
+function dateAns(d,m){
+  var a;
+  if(d<=20)a=[ORDG[d]];
+  else if(d===30)a=['třicátého'];
+  else{var t=d<30?'dvacátého':'třicátého',u=d%10;a=[t+' '+ORDG[u],(u===1?'jedna':ORDU[u]+'a')+t]}
+  return a.map(function(x){return x+' '+MG[m]});
+}
+var MDAYS=[31,28,31,30,31,30,31,31,30,31,30,31];
+function hourAns(h){return h===1?'je jedna hodina':h<5?'jsou '+['','','dvě','tři','čtyři'][h]+' hodiny':'je '+U[h]+' hodin'}
+function atAns(h){var base=h===1?'jednu':h===2?'dvě':U[h],p=[2,3,4,12].indexOf(h)>-1?'ve':'v',unit=h===1?'hodinu':h<5?'hodiny':'hodin';return [p+' '+base,p+' '+base+' '+unit]}
+var NUMHINT={basic:'Escribe el número con letras.',h:'Escribe el número con letras.',t:'Escribe el número con letras.',y:'Lee el año como se dice en checo.',p:'Di el precio completo, con koruny o korun.',
+  hora:'Responde a «Kolik je hodin?», p. ej. jsou tři hodiny.',vkolik:'Responde a «V kolik?», p. ej. ve dvě.',fecha:'Escribe la fecha como se dice, p. ej. osmého listopadu.',
+  d:'Escucha y escribe la cifra.',tel:'Escucha un número de teléfono y escribe las 9 cifras.'};
+var num=null,numDone=false,numRun=0;
+function newNum(auto){
+  var md=document.getElementById('numMode').value,m=md==='mix'?pick(['basic','h','t','y','p','hora','vkolik','fecha']):md,n=0,ans=[],show='',stat='num',speak=null;
+  if(m==='basic'){n=rnd(0,99);ans=[cz(n)];if(n===1)ans.push('jeden')}
+  else if(m==='h'||m==='t'||m==='y'||m==='p'){
+    if(m==='h')n=rnd(100,999);else if(m==='t')n=rnd(1000,9999);else if(m==='y')n=Math.random()<.5?rnd(1950,1999):rnd(2000,2030);else{do{n=rnd(12,1999)}while(n%10===1)}
+    var main=m==='p'?price(n):cz(n);ans=[main];
+    if(n>=1000&&n<2000)ans.push(main.replace(/^tisíc/,'jeden tisíc'));
+    if(m==='y'&&n<2000){var r=n%100;ans.unshift('devatenáct set'+(r?' '+b100(r):''))}
+    show=(m==='y'?String(n):String(n).replace(/\B(?=(\d{3})+$)/,' '))+(m==='p'?' Kč':'');
+  }
+  else if(m==='hora'){n=rnd(1,12);ans=[hourAns(n)];show=n+':00';stat='hora'}
+  else if(m==='vkolik'){n=rnd(1,12);ans=atAns(n);show=pick(['V kolik začíná kurz?','V kolik máš schůzku?','V kolik jede vlak?','V kolik otvírá obchod?'])+' · '+n+':00';stat='hora'}
+  else if(m==='fecha'){var mo=rnd(0,11),dd=rnd(1,MDAYS[mo]);ans=dateAns(dd,mo);show=dd+'. '+(mo+1)+'.';stat='fecha'}
+  else if(m==='d'){n=Math.random()<.5?rnd(100,999):rnd(1000,9999);ans=[String(n)];speak=cz(n);stat='dict'}
+  else if(m==='tel'){var g=[rnd(601,799),rnd(100,999),rnd(100,999)];n=+g.join('');ans=[g.join('')];speak=g.map(cz).join(', ');stat='dict'}
+  if(m==='basic')show=String(n);
+  num={n:n,m:m,ans:ans,stat:stat,speak:speak};numDone=false;
+  var pr=document.getElementById('numPrompt'),inp=document.getElementById('numIn');
+  document.getElementById('numHint').textContent=NUMHINT[m];
+  document.getElementById('numListen').hidden=!speak;
+  if(speak){pr.innerHTML=m==='tel'?'☎ Číslo telefonu…':'Poslouchejte…';inp.setAttribute('inputmode','numeric');inp.placeholder=m==='tel'?'9 cifras':'Cifra, p. ej. 3450';
+    if(auto!==false&&!say(speak))pr.innerHTML='Este navegador no tiene voz checa. Elige otro ejercicio.'}
+  else{pr.innerHTML='<span style="font-variant-numeric:tabular-nums;font-size:'+(show.length>14?'1.4rem':'2.2rem')+'">'+esc(show)+'</span>';inp.removeAttribute('inputmode');inp.placeholder='Escríbelo en checo'}
+  inp.value='';document.getElementById('numFb').innerHTML='';
+}
+document.getElementById('numForm').addEventListener('submit',function(e){
+  e.preventDefault();var v=document.getElementById('numIn').value,r;
+  if(num.speak){var x=v.replace(/\D/g,'');if(!x)return;r=x===num.ans[0]?'ok':'bad'}else{r=check(v,num.ans);if(!r)return}
+  if(!numDone){numDone=true;gramAdd(num.stat,r==='ok');numRun=r==='ok'?numRun+1:0;document.getElementById('numRun').textContent=numRun}
+  var sol=num.speak?(num.m==='tel'?num.ans[0].replace(/(\d{3})(?=\d)/g,'$1 '):num.ans[0])+' · '+num.speak:(num.m==='basic'||num.m==='h'||num.m==='t'||num.m==='y'||num.m==='p'?num.n+' · ':'')+num.ans[0];
+  document.getElementById('numFb').innerHTML='<p class="fb '+r+'">'+(r==='ok'?'Správně':r==='near'?'Casi, revisa los acentos':'Es')+': <strong>'+esc(sol)+'</strong></p>';
+});
+document.getElementById('numNext').addEventListener('click',function(){newNum();document.getElementById('numIn').focus()});
+document.getElementById('numMode').addEventListener('change',function(){newNum()});
+document.getElementById('numPlay').addEventListener('click',function(){if(num&&num.speak)say(num.speak)});
+(function(){
+  var b='';for(var i=0;i<=20;i++)b+='<span>'+(i===0?'nula':i===1?'jeden/jedna':i===2?'dva/dvě':i===20?'dvacet':U[i])+'<b>'+i+'</b></span>';
+  for(var t=3;t<=9;t++)b+='<span>'+T[t]+'<b>'+t*10+'</b></span>';
+  document.getElementById('refBasic').innerHTML=b;
+  var d='';[1,2,3,4,5,8,10,15,20,21,30,31].forEach(function(n){d+='<span>'+dateAns(n,0)[0].replace(' ledna','')+'<b>'+n+'.</b></span>'});
+  document.getElementById('refDates').innerHTML=d;
+})();
+
+/* ================= BACKUP ================= */
+var bkArmed=false;
+function bkMsg(cls,t){var f=document.getElementById('bkFb');f.hidden=false;f.className='fb '+cls;f.textContent=t}
+document.getElementById('bkCopy').addEventListener('click',function(){
+  var txt=JSON.stringify(state),ta=document.getElementById('bkText');ta.value=txt;
+  var fallback=function(){ta.focus();ta.select();bkMsg('near','Texto seleccionado: cópialo con Copiar del menú o Ctrl+C.')};
+  try{navigator.clipboard.writeText(txt).then(function(){bkMsg('ok','Copiado. Pégalo en una nota o en la otra copia de la app.')},fallback)}catch(e){fallback()}
+});
+document.getElementById('bkImport').addEventListener('click',function(){
+  var raw=document.getElementById('bkText').value.trim(),data;
+  if(!raw){bkMsg('bad','Primero pega el texto de tu progreso en el recuadro.');return}
+  try{data=JSON.parse(raw)}catch(e){bkMsg('bad','Ese texto no es un progreso válido. Cópialo completo desde la otra copia.');bkArmed=false;return}
+  if(!data||typeof data!=='object'||!data.cards||typeof data.cards!=='object'){bkMsg('bad','Ese texto no es un progreso válido. Cópialo completo desde la otra copia.');bkArmed=false;return}
+  if(!bkArmed){bkArmed=true;bkMsg('near','Esto reemplaza tu progreso actual con el pegado ('+Object.keys(data.cards).length+' tarjetas). Toca Importar otra vez para confirmar.');return}
+  bkArmed=false;state=normalize(data);session=null;save();renderAll();
+  bkMsg('ok','Progreso importado: '+Object.keys(state.cards).length+' tarjetas.');
+});
+
+[].forEach.call(document.querySelectorAll('[data-g]'),function(b){b.addEventListener('click',function(){
+  [].forEach.call(document.querySelectorAll('[data-g]'),function(x){x.setAttribute('aria-pressed',x===b?'true':'false')});
+  [].forEach.call(document.querySelectorAll('[data-gpanel]'),function(p){p.hidden=p.dataset.gpanel!==b.dataset.g});
+})});
+
+/* ================= PROGRESS ================= */
+function svgBars(vals,labels,color,highlightLast){
+  var W=600,Hh=150,pl=28,pb=22,pt=10,n=vals.length,max=Math.max(4,Math.max.apply(null,vals));
+  var nice=max<=10?Math.ceil(max/2)*2:max<=50?Math.ceil(max/10)*10:Math.ceil(max/50)*50;
+  var bw=(W-pl)/n,s='<svg class="chart" viewBox="0 0 '+W+' '+Hh+'" role="img" aria-label="Gráfica de barras">';
+  [0,.5,1].forEach(function(f){var y=pt+(Hh-pt-pb)*(1-f);s+='<line x1="'+pl+'" x2="'+W+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)" stroke-width="1"/><text x="'+(pl-6)+'" y="'+(y+4)+'" text-anchor="end">'+Math.round(nice*f)+'</text>'});
+  vals.forEach(function(v,i){var h=(Hh-pt-pb)*v/nice,x=pl+i*bw+bw*.18,y=Hh-pb-h;
+    s+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+(bw*.64).toFixed(1)+'" height="'+Math.max(0,h).toFixed(1)+'" rx="2" fill="'+(highlightLast&&i===n-1?'var(--accent)':color)+'"><title>'+labels[i]+': '+v+'</title></rect>';
+    if(labels[i]&&(n<=10||i%5===0||i===n-1))s+='<text x="'+(x+bw*.32).toFixed(1)+'" y="'+(Hh-6)+'" text-anchor="middle">'+labels[i]+'</text>';
+  });
+  return s+'</svg>';
+}
+function renderProgress(){
+  var W=allWords(),all=THEMES.reduce(function(a,t){return a.concat(t.words)},[]).concat(W.mine);
+  var seen=all.filter(seenWord).length,solid=all.filter(function(w){return strength(w)===2}).length;
+  var active=THEMES.filter(function(t){return state.settings.off.indexOf(t.id)<0}).reduce(function(a,t){return a.concat(t.words)},[]).concat(W.mine);
+  document.getElementById('sSeen').textContent=seen;document.getElementById('sSolid').textContent=solid;
+  document.getElementById('sLeft').textContent=active.filter(function(w){return !seenWord(w)}).length;
+  var st=0,d=TODAY;if(!state.log[dayKey(d)])d--;while(state.log[dayKey(d)]){st++;d--}
+  document.getElementById('sStreak').textContent=st;
+  var vals=[],labs=[],tot=0;for(var i=29;i>=0;i--){var k=dayKey(TODAY-i),v=state.log[k]||0;vals.push(v);tot+=v;var dt=new Date((TODAY-i)*864e5);labs.push(dt.getUTCDate()+'.'+(dt.getUTCMonth()+1)+'.')}
+  document.getElementById('sTotal').textContent=tot+' en total';
+  document.getElementById('chartLog').innerHTML=svgBars(vals,labs,'var(--blue)',true);
+  var fut=[0,0,0,0,0,0,0],fl=[];
+  Object.keys(state.cards).forEach(function(id){var c=state.cards[id],off=Math.max(0,c.d-TODAY);if(off<7)fut[off]++});
+  for(var j=0;j<7;j++){var dd=new Date((TODAY+j)*864e5);fl.push(j===0?'hoy':DN[dd.getUTCDay()].slice(0,2))}
+  document.getElementById('chartFut').innerHTML=svgBars(fut,fl,'var(--ok)',false);
+  var rows=[['G','Genitiv'],['D','Dativ'],['A','Akuzativ'],['L','Lokál'],['I','Instrumentál'],['pres','Presente'],['past','Pasado'],['num','Números'],['hora','La hora'],['fecha','Fechas'],['dict','Dictado']];
+  document.getElementById('gramBars').innerHTML=rows.map(function(r){var g=state.gram[r[0]]||[0,0],p=g[1]?Math.round(g[0]/g[1]*100):0;
+    var col=!g[1]?'var(--line)':p>=80?'var(--ok)':p>=60?'var(--warn)':'var(--bad)';
+    return '<div class="bar"><span>'+r[1]+'</span><span class="track"><span style="width:'+p+'%;background:'+col+'"></span></span><span class="v">'+(g[1]?p+'% · '+g[1]:'—')+'</span></div>'}).join('');
+  document.getElementById('setNew').value=String(state.settings.newPerDay);
+  document.getElementById('setDir').value=state.settings.dir;
+  document.getElementById('setType').checked=!!state.settings.type;
+}
+document.getElementById('setNew').addEventListener('change',function(){state.settings.newPerDay=+this.value;save();session=null});
+document.getElementById('setDir').addEventListener('change',function(){state.settings.dir=this.value;save();session=null});
+document.getElementById('setType').addEventListener('change',function(){state.settings.type=this.checked;save();session=null});
+
+/* ================= TABS ================= */
+var tabs=[].slice.call(document.querySelectorAll('nav button'));
+function showTab(id){
+  tabs.forEach(function(t){t.setAttribute('aria-selected',t.dataset.tab===id?'true':'false')});
+  [].forEach.call(document.querySelectorAll('[data-panel]'),function(p){p.hidden=p.id!==id});
+  if(id==='dnes')renderCard();if(id==='slova')renderThemes();if(id==='pokrok')renderProgress();
+  try{localStorage.setItem('opakovani-tab',id)}catch(e){}
+}
+tabs.forEach(function(t){t.addEventListener('click',function(){showTab(t.dataset.tab)})});
+function renderAll(){
+  var cur=(tabs.filter(function(t){return t.getAttribute('aria-selected')==='true'})[0]||tabs[0]).dataset.tab;
+  showTab(cur);
+}
+newPady();newVerb();
+(function(){var h=(location.hash||'').slice(1),t=null;try{t=localStorage.getItem('opakovani-tab')}catch(e){}
+  var id=document.getElementById(h)&&document.getElementById(h).hasAttribute('data-panel')?h:(t&&document.getElementById(t)?t:'dnes');
+  tabs.forEach(function(x){x.setAttribute('aria-selected',x.dataset.tab===id?'true':'false')});
+})();
+newNum(false);
+initStore();
+setInterval(function(){var t=dayIdx();if(t!==TODAY){TODAY=t;session=null;if(!document.getElementById('dnes').hidden)renderCard()}},60000);
+})();
+</script>
+
+<script>
+// Registra la app para que se pueda instalar y funcione sin internet
+if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost')){
+  window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})});
+}
+</script>
+</body></html>
